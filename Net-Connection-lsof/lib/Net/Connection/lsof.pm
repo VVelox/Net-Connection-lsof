@@ -3,50 +3,127 @@ package Net::Connection::lsof;
 use 5.006;
 use strict;
 use warnings;
+use Net::Connection;
+require Exporter;
+
+our @ISA = qw(Exporter);
+our @EXPORT=qw(lsof_to_nc_objects);
 
 =head1 NAME
 
-Net::Connection::lsof - The great new Net::Connection::lsof!
+Net::Connection::lsof - This uses lsof to generate a array of Net::Connection objects.
 
 =head1 VERSION
 
-Version 0.01
+Version 0.0.0
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.0.0';
 
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
-
     use Net::Connection::lsof;
 
-    my $foo = Net::Connection::lsof->new();
-    ...
+    my @objects = lsof_to_nc_objects;
 
-=head1 EXPORT
+=head1 SUBROUTINES
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+=head2 lsof_to_nc_objects
 
-=head1 SUBROUTINES/METHODS
-
-=head2 function1
+This runs 'lsof -i UDP -i TCP -n -l +c 19 -P' and parses the output
+returns a array of Net::Connection objects.
 
 =cut
 
-sub function1 {
-}
+sub lsof_to_nc_objects{
+	my %func_args;
+	if(defined($_[0])){
+		%func_args= %{$_[0]};
+	};
 
-=head2 function2
+	if ( !defined( $func_args{ptrs} ) ){
+		$func_args{ptrs}=1;
+	}
+	if ( !defined( $func_args{ports} ) ){
+		$func_args{ports}=1;
+	}
 
-=cut
+	my $output_raw=`lsof -i UDP -i TCP -n -l +c 19 -P`;
+	my @output_lines=split(/\n/, $output_raw);
 
-sub function2 {
+	my @nc_objects;
+
+	my $line_int=1;
+	while ( defined( $output_lines[$line_int] ) ){
+		my $command=substr $output_lines[$line_int], 0, 19;
+		my $line=substr $output_lines[$line_int], 19;
+
+		my @line_split=split(/[\ \t]+/, $line );
+
+		my $args={
+				  pid=>$line_split[0],
+				  uid=>$line_split[1],
+				  ports=>$func_args{ports},
+				  ptrs=>$func_args{ptrs},
+				  };
+
+		my $type=$line_split[2];
+		my $mode=$line_split[6];
+		my $name=$line_split[7];
+
+		# Use the name and type to build the proto.
+		my $proto='';
+		if ( $type =~ /6/ ){
+			$proto='6';
+		}elsif( $type =~ /4/ ){
+			$proto='6';
+		}
+		if ( $mode =~ /[Uu][Dd][Pp]/ ){
+			$proto='udp'.$proto;
+		}elsif( $mode =~ /[Tt][Cc][Pp]/ ){
+			$proto='tcp'.$proto;
+		}
+		$args->{proto}=$proto;
+
+		my ( $local, $foreign )=split( /\-\>/, $name );
+
+		my $ip;
+		my $port;
+
+		if ( ! defined( $foreign ) ){
+			$args->{foreign_host}='*';
+			$args->{foreign_port}='*';
+		}else{
+			if ( $foreign =~ /\]/ ){
+				( $ip, $port ) = split( /\]/, $foreign );
+				$ip=~s/^\[//;
+				$port=~s/\://;
+			}else{
+				( $ip, $port ) = split( /\:/, $foreign );
+			}
+
+			$args->{foreign_host}=$ip;
+			$args->{foreign_port}=$port;
+		}
+
+		if ( $local =~ /\]/ ){
+			( $ip, $port ) = split( /\]/, $local );
+			$ip=~s/^\[//;
+			$port=~s/\://;
+		}else{
+			( $ip, $port ) = split( /\:/, $local );
+		}
+		$args->{local_host}=$ip;
+		$args->{local_port}=$port;
+
+		push( @nc_objects, Net::Connection->new( $args ) );
+
+		$line_int++;
+	}
+
+	return @nc_objects;
 }
 
 =head1 AUTHOR
