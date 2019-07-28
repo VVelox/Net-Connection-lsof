@@ -12,7 +12,7 @@ BEGIN {
 
 
 my $output_raw=`lsof -i UDP -i TCP -n -l +c 19 -P`;
-if ( $@ ne 0 ){
+if ( $? eq 0 ){
 	$extra_tests++;
 	my $worked=0;
 	eval{

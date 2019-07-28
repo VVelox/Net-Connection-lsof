@@ -26,14 +26,50 @@ our $VERSION = '0.0.0';
 
     use Net::Connection::lsof;
 
-    my @objects = lsof_to_nc_objects;
+    my @objects;
+    eval{ @objects = &lsof_to_nc_objects; };
+
+    # this time don't resolve ports, ptrs, or usernames
+    my $args={
+             ports=>0,
+             ptrs=>0,
+             uid_resolve=>0,
+             };
+    eval{ @objects = &lsof_to_nc_objects($args); };
 
 =head1 SUBROUTINES
 
 =head2 lsof_to_nc_objects
 
 This runs 'lsof -i UDP -i TCP -n -l +c 19 -P' and parses the output
-returns a array of Net::Connection objects.
+returns a array of L<Net::Connection> objects. If a non-zero exit code is
+returned, it will die.
+
+There is one optional argument and that is hash reference that can take
+several possible keys.
+
+=head3 args hash
+
+=head4 ports
+
+Attempt to resolve the port names.
+
+Defaults to 1.
+
+=head4 ptrs
+
+Attempt to resolve the PTRs.
+
+Defaults to 1.
+
+=head4 uid_resolve
+
+Attempt to resolve the UID to a username.
+
+Defaults to 1.
+
+    my @objects;
+    eval{ @objects = &lsof_to_nc_objects( $args ); };
 
 =cut
 
@@ -49,8 +85,14 @@ sub lsof_to_nc_objects{
 	if ( !defined( $func_args{ports} ) ){
 		$func_args{ports}=1;
 	}
+	if ( !defined( $func_args{uid_resolve} ) ){
+		$func_args{uid_resolve}=1;
+	}
 
 	my $output_raw=`lsof -i UDP -i TCP -n -l +c 19 -P`;
+	if ( $? ne 0 ){
+		die('"lsof -i UDP -i TCP -n -l +c 19 -P" exited with a non-zero value');
+	}
 	my @output_lines=split(/\n/, $output_raw);
 
 	my @nc_objects;
@@ -171,6 +213,10 @@ L<https://cpanratings.perl.org/d/Net-Connection-lsof>
 =item * Search CPAN
 
 L<https://metacpan.org/release/Net-Connection-lsof>
+
+=item * Git Repo
+
+L<https://gitea.eesdp.org/vvelox/Net-Connection-lsof>
 
 =back
 
