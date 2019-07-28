@@ -118,6 +118,12 @@ sub lsof_to_nc_objects{
 		$args->{local_host}=$ip;
 		$args->{local_port}=$port;
 
+		$args->{state}='';
+		if ( defined( $line_split[8] ) ){
+			$args->{state}=$line_split[8];
+			$args->{state}=~s/[\(\)]//;
+		}
+
 		push( @nc_objects, Net::Connection->new( $args ) );
 
 		$line_int++;
