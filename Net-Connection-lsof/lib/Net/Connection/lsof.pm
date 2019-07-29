@@ -15,11 +15,11 @@ Net::Connection::lsof - This uses lsof to generate a array of Net::Connection ob
 
 =head1 VERSION
 
-Version 0.0.1
+Version 0.0.2
 
 =cut
 
-our $VERSION = '0.0.1';
+our $VERSION = '0.0.2';
 
 
 =head1 SYNOPSIS
@@ -111,9 +111,10 @@ sub lsof_to_nc_objects{
 				  uid=>$line_split[1],
 				  ports=>$func_args{ports},
 				  ptrs=>$func_args{ptrs},
+				  uid_resolve=>$func_args{uid_resolve},
 				  };
 
-		my $type=$line_split[2];
+		my $type=$line_split[3];
 		my $mode=$line_split[6];
 		my $name=$line_split[7];
 
@@ -122,7 +123,7 @@ sub lsof_to_nc_objects{
 		if ( $type =~ /6/ ){
 			$proto='6';
 		}elsif( $type =~ /4/ ){
-			$proto='6';
+			$proto='4';
 		}
 		if ( $mode =~ /[Uu][Dd][Pp]/ ){
 			$proto='udp'.$proto;
@@ -165,7 +166,7 @@ sub lsof_to_nc_objects{
 		$args->{state}='';
 		if ( defined( $line_split[8] ) ){
 			$args->{state}=$line_split[8];
-			$args->{state}=~s/[\(\)]//;
+			$args->{state}=~s/[\(\)]//g;
 		}
 
 		push( @nc_objects, Net::Connection->new( $args ) );
