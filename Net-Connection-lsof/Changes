@@ -1,5 +1,9 @@
 Revision history for Net-Connection-lsof
 
+0.0.1	 2019-07-28/21:10
+		 - Some versions of lsof shipped with some linux
+		   distros don't support +c so don't use that option.
+
 0.0.0	 2019-07-28/06:40
 		 - Initial release.
 

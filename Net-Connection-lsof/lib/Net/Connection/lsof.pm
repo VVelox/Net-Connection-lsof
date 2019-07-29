@@ -41,7 +41,7 @@ our $VERSION = '0.0.0';
 
 =head2 lsof_to_nc_objects
 
-This runs 'lsof -i UDP -i TCP -n -l +c 19 -P' and parses the output
+This runs 'lsof -i UDP -i TCP -n -l -P' and parses the output
 returns a array of L<Net::Connection> objects. If a non-zero exit code is
 returned, it will die.
 
@@ -89,9 +89,9 @@ sub lsof_to_nc_objects{
 		$func_args{uid_resolve}=1;
 	}
 
-	my $output_raw=`lsof -i UDP -i TCP -n -l +c 19 -P`;
+	my $output_raw=`lsof -i UDP -i TCP -n -l -P`;
 	if ( $? ne 0 ){
-		die('"lsof -i UDP -i TCP -n -l +c 19 -P" exited with a non-zero value');
+		die('"lsof -i UDP -i TCP -n -l -P" exited with a non-zero value');
 	}
 	my @output_lines=split(/\n/, $output_raw);
 
@@ -99,8 +99,10 @@ sub lsof_to_nc_objects{
 
 	my $line_int=1;
 	while ( defined( $output_lines[$line_int] ) ){
-		my $command=substr $output_lines[$line_int], 0, 19;
-		my $line=substr $output_lines[$line_int], 19;
+		my $command=substr $output_lines[$line_int], 0, 9;
+		my $line=substr $output_lines[$line_int], 10;
+
+		$line=~s/^[\t ]*//;
 
 		my @line_split=split(/[\ \t]+/, $line );
 
