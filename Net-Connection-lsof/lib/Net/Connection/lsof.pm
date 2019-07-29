@@ -15,11 +15,11 @@ Net::Connection::lsof - This uses lsof to generate a array of Net::Connection ob
 
 =head1 VERSION
 
-Version 0.0.0
+Version 0.0.1
 
 =cut
 
-our $VERSION = '0.0.0';
+our $VERSION = '0.0.1';
 
 
 =head1 SYNOPSIS
