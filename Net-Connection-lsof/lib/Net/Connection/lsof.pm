@@ -91,13 +91,13 @@ sub lsof_to_nc_objects{
 
 	my $output_raw=`lsof -i UDP -i TCP -n -l -P`;
 	if (
-		( $? ne 0 ) ||
+		( $? ne 0 ) &&
 		(
 		 ( $^O =~ /linux/ ) &&
 		 ( $? eq 256 )
 		 )
 		){
-		die('"lsof -i UDP -i TCP -n -l -P" exited with a non-zero value');
+		die('"lsof -i UDP -i TCP -n -l -P" exited with a non-zero value or in the case of some linux distros a non-1 value');
 	}
 	my @output_lines=split(/\n/, $output_raw);
 
