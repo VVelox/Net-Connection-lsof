@@ -94,7 +94,7 @@ sub lsof_to_nc_objects{
 		( $? ne 0 ) &&
 		(
 		 ( $^O =~ /linux/ ) &&
-		 ( $? eq 256 )
+		 ( $? ne 256 )
 		 )
 		){
 		die('"lsof -i UDP -i TCP -n -l -P" exited with a non-zero value or in the case of some linux distros a non-1 value');
