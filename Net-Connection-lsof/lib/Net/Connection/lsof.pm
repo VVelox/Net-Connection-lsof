@@ -15,11 +15,11 @@ Net::Connection::lsof - This uses lsof to generate a array of Net::Connection ob
 
 =head1 VERSION
 
-Version 0.0.2
+Version 0.0.3
 
 =cut
 
-our $VERSION = '0.0.2';
+our $VERSION = '0.0.3';
 
 
 =head1 SYNOPSIS
@@ -90,7 +90,13 @@ sub lsof_to_nc_objects{
 	}
 
 	my $output_raw=`lsof -i UDP -i TCP -n -l -P`;
-	if ( $? ne 0 ){
+	if (
+		( $? ne 0 ) ||
+		(
+		 ( $^O =~ /linux/ ) &&
+		 ( $? eq 256 )
+		 )
+		){
 		die('"lsof -i UDP -i TCP -n -l -P" exited with a non-zero value');
 	}
 	my @output_lines=split(/\n/, $output_raw);
