@@ -1,3 +1,4 @@
+
 package Net::Connection::lsof;
 
 use 5.006;
@@ -16,11 +17,11 @@ Net::Connection::lsof - This uses lsof to generate a array of Net::Connection ob
 
 =head1 VERSION
 
-Version 0.1.0
+Version 0.1.1
 
 =cut
 
-our $VERSION = '0.1.0';
+our $VERSION = '0.1.1';
 
 
 =head1 SYNOPSIS
@@ -125,9 +126,11 @@ sub lsof_to_nc_objects{
 	if ( $func_args{proc_info} ){
 		my $pt=Proc::ProcessTable->new;
 		$proc_table=$pt->table;
-		$physmem=`/sbin/sysctl -a hw.physmem`;
-		chomp( $physmem );
-		$physmem=~s/^.*\: //;
+		if ( $^O =~ /bsd/ ){
+			$physmem=`/sbin/sysctl -a hw.physmem`;
+			chomp( $physmem );
+			$physmem=~s/^.*\: //;
+		}
 	}
 
 	my $line_int=1;
